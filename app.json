@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "LOBO EP",
+    "slug": "lobo-ep-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0A"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.loboep.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Use Face ID to securely access your LOBO EP account.",
+        "NSLocationWhenInUseUsageDescription": "LOBO EP needs your location to show nearby services and for agent tracking.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "LOBO EP uses your location for active protection details."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0A0A"
+      },
+      "package": "com.loboep.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-local-authentication",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0A0A0A",
+          "image": "./assets/splash.png"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "620e9f2f-b6e0-48e4-97e6-ae28f3c5ec11"
+      }
+    }
+  }
+}
