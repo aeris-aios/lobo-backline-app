@@ -64,6 +64,16 @@ const SERVICES: ServiceOption[] = [
     requiresArmed: false,
     availableAttire: ['low_profile', 'casual_concealed'],
   },
+  {
+    id: 'special_event',
+    title: 'Special Event',
+    subtitle: 'Event security',
+    description: 'Galas, weddings, parties & sporting events',
+    icon: 'sparkles-outline',
+    baseRate: 275,
+    requiresArmed: false,
+    availableAttire: ['suit_executive', 'low_profile'],
+  },
 ];
 
 const MOCK_RECENT = [
@@ -115,6 +125,7 @@ function BellButton({ onPress, unreadCount }: { onPress: () => void; unreadCount
       onPress={onPress}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
+      hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
     >
       <Animated.View style={{ transform: [{ scale: scaleAnim }, { rotate: shakeAnim.interpolate({ inputRange: [-10, 10], outputRange: ['-10deg', '10deg'] }) }] }}>
         <Ionicons name="notifications" size={22} color={Colors.textPrimary} />
@@ -222,7 +233,14 @@ export default function HomeScreen() {
         <HeroCarousel style={{ height: MAP_HEIGHT }} />
 
         {/* Header overlay on map */}
-        <View style={[styles.mapOverlayHeader, { top: insets.top }]}>
+        <View style={[
+          styles.mapOverlayHeader,
+          {
+            top: insets.top,
+            paddingLeft:  Math.max(Spacing.base, insets.left  + Spacing.base),
+            paddingRight: Math.max(Spacing.base, insets.right + Spacing.base),
+          },
+        ]}>
           <View style={styles.logoChip}>
             <Image
               source={require('../../../assets/logo-mark.png')}
@@ -234,16 +252,32 @@ export default function HomeScreen() {
         </View>
 
         {/* Booking sheet */}
-        <View style={styles.sheet}>
+        <View style={[
+          styles.sheet,
+          {
+            paddingLeft:  Math.max(Spacing['2xl'], insets.left  + Spacing.base),
+            paddingRight: Math.max(Spacing['2xl'], insets.right + Spacing.base),
+          },
+        ]}>
+          {/* EP Verified Banner — above greeting */}
+          <View style={styles.epVerifiedBar}>
+            <View style={styles.epVerifiedLeft}>
+              <Ionicons name="shield-checkmark" size={16} color={Colors.crimson} />
+              <Text style={styles.epVerifiedText}>EP Member</Text>
+              <View style={styles.epVerifiedDot} />
+              <Text style={styles.epVerifiedStatus}>Verified</Text>
+            </View>
+            <View style={styles.epVerifiedRight}>
+              <View style={styles.epActiveDot} />
+              <Text style={styles.epActiveText}>Active</Text>
+            </View>
+          </View>
+
           {/* Greeting */}
           <View style={styles.greetingRow}>
             <View>
               <Text style={styles.greeting}>Good afternoon</Text>
               <Text style={styles.greetingName}>Where do you need coverage?</Text>
-            </View>
-            <View style={styles.memberBadge}>
-              <Ionicons name="shield-checkmark" size={14} color={Colors.crimson} />
-              <Text style={styles.memberText}>EP Member</Text>
             </View>
           </View>
 
@@ -328,6 +362,8 @@ export default function HomeScreen() {
                     navigation.navigate('UnarmedEPOverview');
                   } else if (s.id === 'school_family_escort') {
                     navigation.navigate('FamilyEPOverview');
+                  } else if (s.id === 'special_event') {
+                    navigation.navigate('SpecialEventOverview');
                   }
                 }}
                 fullWidth
@@ -423,10 +459,10 @@ const styles = StyleSheet.create({
     height: 36,
   },
   notifBtn: {
-    width: 42,
-    height: 42,
+    width: 48,
+    height: 48,
     backgroundColor: 'rgba(10,10,10,0.88)',
-    borderRadius: 21,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -473,10 +509,61 @@ const styles = StyleSheet.create({
     ...Shadows.lg,
   },
 
-  greetingRow: {
+  // EP Verified Banner
+  epVerifiedBar: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    backgroundColor: 'rgba(139,0,0,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(139,0,0,0.35)',
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: 10,
+    marginBottom: Spacing.md,
+  },
+  epVerifiedLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  epVerifiedText: {
+    color: Colors.textPrimary,
+    fontSize: Typography.size.sm,
+    fontWeight: Typography.weight.bold,
+    letterSpacing: 0.3,
+  },
+  epVerifiedDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: Colors.textMuted,
+  },
+  epVerifiedStatus: {
+    color: Colors.crimsonLight,
+    fontSize: Typography.size.xs,
+    fontWeight: Typography.weight.semiBold,
+    letterSpacing: 0.5,
+  },
+  epVerifiedRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  epActiveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#4ADE80',
+  },
+  epActiveText: {
+    color: '#4ADE80',
+    fontSize: Typography.size.xs,
+    fontWeight: Typography.weight.semiBold,
+    letterSpacing: 0.5,
+  },
+
+  greetingRow: {
     marginBottom: Spacing.base,
   },
   greeting: {
@@ -499,6 +586,8 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     borderWidth: 1,
     borderColor: Colors.crimsonDark,
+    flexShrink: 0,
+    alignSelf: 'flex-start',
   },
   memberText: {
     color: Colors.crimsonLight,

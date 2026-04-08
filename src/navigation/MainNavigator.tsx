@@ -18,6 +18,10 @@ import FamilyEPOverviewScreen from '../screens/home/FamilyEPOverviewScreen';
 import BookProtectionScreen from '../screens/home/BookProtectionScreen';
 import ScheduleProtectionScreen from '../screens/home/ScheduleProtectionScreen';
 import NotificationsScreen from '../screens/home/NotificationsScreen';
+import RequestNowScreen from '../screens/home/RequestNowScreen';
+import SpecialEventOverviewScreen from '../screens/home/SpecialEventOverviewScreen';
+import SpecialEventBookingScreen from '../screens/home/SpecialEventBookingScreen';
+import BookingConfirmationScreen from '../screens/home/BookingConfirmationScreen';
 import TripsScreen from '../screens/trips/TripsScreen';
 import TripDetailScreen from '../screens/trips/TripDetailScreen';
 import MessagesScreen from '../screens/messages/MessagesScreen';
@@ -53,6 +57,10 @@ function HomeStackNav() {
       <HomeStack.Screen name="BookProtection" component={BookProtectionScreen} />
       <HomeStack.Screen name="ScheduleProtection" component={ScheduleProtectionScreen} />
       <HomeStack.Screen name="Notifications" component={NotificationsScreen} />
+      <HomeStack.Screen name="RequestNow" component={RequestNowScreen} />
+      <HomeStack.Screen name="SpecialEventOverview" component={SpecialEventOverviewScreen} />
+      <HomeStack.Screen name="SpecialEventBooking" component={SpecialEventBookingScreen} />
+      <HomeStack.Screen name="BookingConfirmation" component={BookingConfirmationScreen} />
     </HomeStack.Navigator>
   );
 }

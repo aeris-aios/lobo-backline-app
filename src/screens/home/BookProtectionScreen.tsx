@@ -18,7 +18,7 @@ import MapPlaceholder from '../../components/home/MapPlaceholder';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MAP_HEIGHT = SCREEN_HEIGHT * 0.32;
 
-type ServiceId = 'armed_ep' | 'unarmed_ep' | 'blackline' | 'family_ep';
+type ServiceId = 'armed_ep' | 'unarmed_ep' | 'blackline' | 'family_ep' | 'special_event';
 type ScheduleMode = 'now' | 'schedule';
 type AttireId = 'suited' | 'plain_clothes' | 'tactical';
 
@@ -26,10 +26,11 @@ const SERVICES: {
   id: ServiceId; label: string; sub: string;
   icon: keyof typeof Ionicons.glyphMap; rate: number; color: string;
 }[] = [
-  { id: 'armed_ep',   label: 'Armed EP',   sub: '$250/hr', icon: 'shield-checkmark', rate: 250, color: Colors.crimson },
-  { id: 'unarmed_ep', label: 'Unarmed EP', sub: '$175/hr', icon: 'person',           rate: 175, color: Colors.steel },
-  { id: 'blackline',  label: 'Blackline',  sub: '$150/hr', icon: 'car-sport',        rate: 150, color: '#C9A84C' },
-  { id: 'family_ep',  label: 'Family EP',  sub: '$200/hr', icon: 'people',           rate: 200, color: '#C9A84C' },
+  { id: 'armed_ep',      label: 'Armed EP',      sub: '$250/hr', icon: 'shield-checkmark', rate: 250, color: Colors.crimson },
+  { id: 'unarmed_ep',    label: 'Unarmed EP',    sub: '$175/hr', icon: 'person',            rate: 175, color: Colors.steel   },
+  { id: 'blackline',     label: 'Blackline',     sub: '$150/hr', icon: 'car-sport',         rate: 150, color: '#C9A84C'      },
+  { id: 'family_ep',     label: 'Family EP',     sub: '$200/hr', icon: 'people',            rate: 200, color: Colors.crimson },
+  { id: 'special_event', label: 'Special Event', sub: '$275/hr', icon: 'sparkles',          rate: 275, color: Colors.crimson },
 ];
 
 const ATTIRE: { id: AttireId; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
@@ -70,6 +71,29 @@ export default function BookProtectionScreen() {
   const isReady      = pickup.length > 0 && destination.length > 0;
   const estMiles     = isReady ? '6.4' : null;
   const estTotal     = parseInt(hours) * service.rate * agentCount;
+
+  const ATTIRE_LABELS: Record<AttireId, string> = {
+    suited: 'Executive Suit', plain_clothes: 'Plain Clothes', tactical: 'Tactical',
+  };
+
+  const goToRequestNow = () => {
+    if (activeService === 'special_event') {
+      navigation.navigate('SpecialEventBooking');
+      return;
+    }
+    navigation.navigate('RequestNow', {
+      pickup,
+      destination,
+      service:      service.label,
+      serviceColor: service.color,
+      hours,
+      agentCount,
+      attire:       ATTIRE_LABELS[attire],
+      rate:         service.rate,
+      estTotal,
+      requiresArmed: service.id === 'armed_ep',
+    });
+  };
 
   const fillFromSaved = (loc: typeof SAVED_LOCATIONS[0]) => {
     if (!pickup) setPickup(loc.label);
@@ -209,8 +233,8 @@ export default function BookProtectionScreen() {
                   <Text style={[styles.serviceCardLabel, active && { color: svc.color }]}>{svc.label}</Text>
                   <Text style={styles.serviceCardRate}>{svc.sub}</Text>
                   {active && (
-                    <View style={[styles.serviceCheck, { backgroundColor: svc.color }]}>
-                      <Ionicons name="checkmark" size={10} color="#fff" />
+                    <View style={[styles.serviceCheck, { borderColor: svc.color }]}>
+                      <View style={[styles.serviceCheckDot, { backgroundColor: svc.color }]} />
                     </View>
                   )}
                 </LinearGradient>
@@ -219,16 +243,9 @@ export default function BookProtectionScreen() {
           })}
         </ScrollView>
 
-        {/* ── Coverage Duration — horizontal slide ── */}
+        {/* ── Coverage Duration — all 7 visible in one row ── */}
         <SectionLabel icon="time-outline" text="Coverage Duration" />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          nestedScrollEnabled
-          decelerationRate="fast"
-          style={styles.hScroll}
-          contentContainerStyle={styles.hScrollContent}
-        >
+        <View style={styles.hourRow}>
           {HOURS.map(h => (
             <TouchableOpacity
               key={h}
@@ -240,11 +257,10 @@ export default function BookProtectionScreen() {
               <Text style={[styles.hourUnit, hours === h && styles.hourUnitActive]}>hr{parseInt(h) > 1 ? 's' : ''}</Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
 
-        {/* ── Agents + Attire ── */}
+        {/* ── Agents ── */}
         <View style={styles.configRow}>
-          {/* Stepper */}
           <View style={styles.configBox}>
             <Text style={styles.configBoxLabel}>Agents</Text>
             <View style={styles.stepper}>
@@ -257,26 +273,22 @@ export default function BookProtectionScreen() {
               </TouchableOpacity>
             </View>
           </View>
+        </View>
 
-          {/* Attire — horizontal slide */}
-          <View style={[styles.configBox, { flex: 1.8 }]}>
-            <Text style={styles.configBoxLabel}>Attire</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled decelerationRate="fast">
-              <View style={styles.attireRow}>
-                {ATTIRE.map(a => (
-                  <TouchableOpacity
-                    key={a.id}
-                    style={[styles.attireChip, attire === a.id && styles.attireChipActive]}
-                    onPress={() => setAttire(a.id)}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name={a.icon} size={13} color={attire === a.id ? Colors.textPrimary : Colors.steel} />
-                    <Text style={[styles.attireText, attire === a.id && styles.attireTextActive]}>{a.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
+        {/* ── Attire — full-width, all 3 visible ── */}
+        <SectionLabel icon="briefcase-outline" text="Attire" />
+        <View style={styles.attireFullRow}>
+          {ATTIRE.map(a => (
+            <TouchableOpacity
+              key={a.id}
+              style={[styles.attireChipFull, attire === a.id && styles.attireChipActive]}
+              onPress={() => setAttire(a.id)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name={a.icon} size={16} color={attire === a.id ? Colors.textPrimary : Colors.steel} />
+              <Text style={[styles.attireText, attire === a.id && styles.attireTextActive]}>{a.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* ── Saved / Past Trips tabs ── */}
@@ -398,7 +410,7 @@ export default function BookProtectionScreen() {
         </View>
 
         {/* ── Inline Request Now Button ── */}
-        <TouchableOpacity style={styles.inlineRequestBtn} activeOpacity={0.88}>
+        <TouchableOpacity style={styles.inlineRequestBtn} activeOpacity={0.88} onPress={goToRequestNow}>
           <LinearGradient
             colors={isReady ? [Colors.crimsonDark, Colors.crimson] : ['#2A2A2A', '#222222']}
             style={styles.inlineRequestGrad}
@@ -426,7 +438,7 @@ export default function BookProtectionScreen() {
           <Text style={styles.stickyPrice}>${estTotal.toLocaleString()}</Text>
           <Text style={styles.stickyMeta}>{service.label} · {hours}h · {agentCount} agent{agentCount > 1 ? 's' : ''}</Text>
         </View>
-        <TouchableOpacity style={styles.stickyBtn} activeOpacity={0.85}>
+        <TouchableOpacity style={styles.stickyBtn} activeOpacity={0.85} onPress={goToRequestNow}>
           <LinearGradient
             colors={isReady ? [Colors.crimsonDark, Colors.crimson] : ['#333', '#2A2A2A']}
             style={styles.stickyBtnGrad}
@@ -525,36 +537,40 @@ const styles = StyleSheet.create({
   hScroll: { marginHorizontal: -Spacing.base },
   hScrollContent: { paddingHorizontal: Spacing.base, gap: Spacing.sm, paddingRight: Spacing.xl },
 
-  // Service cards
+  // Service cards — compact so all 5 fit + scroll
   serviceCard: {
-    width: 110, borderRadius: BorderRadius.lg,
+    width: 96, borderRadius: BorderRadius.lg,
     borderWidth: 1.5, borderColor: Colors.border, overflow: 'hidden',
   },
-  serviceCardGrad: { padding: Spacing.md, gap: 6, minHeight: 100, justifyContent: 'center' },
+  serviceCardGrad: { padding: Spacing.sm, gap: 5, minHeight: 92, justifyContent: 'center' },
   serviceIconWrap: {
-    width: 40, height: 40, borderRadius: BorderRadius.md,
+    width: 36, height: 36, borderRadius: BorderRadius.md,
     backgroundColor: Colors.surface3, borderWidth: 1, borderColor: Colors.border,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 4,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 2,
   },
-  serviceCardLabel: { color: Colors.textSecondary, fontSize: Typography.size.sm, fontWeight: Typography.weight.bold },
-  serviceCardRate: { color: Colors.textMuted, fontSize: 11 },
+  serviceCardLabel: { color: Colors.textSecondary, fontSize: 11, fontWeight: Typography.weight.bold },
+  serviceCardRate: { color: Colors.textMuted, fontSize: 10 },
   serviceCheck: {
-    position: 'absolute', top: 8, right: 8,
-    width: 18, height: 18, borderRadius: 9,
+    position: 'absolute', top: 7, right: 7,
+    width: 10, height: 10, borderRadius: 5,
+    borderWidth: 1.5,
     alignItems: 'center', justifyContent: 'center',
   },
+  serviceCheckDot: {
+    width: 5, height: 5, borderRadius: 3,
+  },
 
-  // Hour chips
+  // Hour chips — all 7 fit on screen
   hourChip: {
-    width: 62, height: 56, alignItems: 'center', justifyContent: 'center',
+    flex: 1, height: 52, alignItems: 'center', justifyContent: 'center',
     backgroundColor: Colors.surface2, borderRadius: BorderRadius.md,
     borderWidth: 1, borderColor: Colors.border,
   },
-  hourChipActive: { backgroundColor: 'rgba(139,0,0,0.15)', borderColor: Colors.crimson },
-  hourNum: { color: Colors.steel, fontSize: Typography.size.lg, fontWeight: Typography.weight.bold, lineHeight: 22 },
-  hourNumActive: { color: Colors.crimsonLight },
-  hourUnit: { color: Colors.textMuted, fontSize: 10 },
-  hourUnitActive: { color: Colors.crimson },
+  hourChipActive: { backgroundColor: 'rgba(139,0,0,0.20)', borderColor: Colors.crimson },
+  hourNum: { color: Colors.steel, fontSize: Typography.size.md, fontWeight: Typography.weight.bold, lineHeight: 20 },
+  hourNumActive: { color: Colors.textPrimary },
+  hourUnit: { color: Colors.textMuted, fontSize: 9 },
+  hourUnitActive: { color: Colors.crimsonLight },
 
   // Config row
   configRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.lg },
@@ -576,7 +592,20 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary, fontSize: Typography.size.xl,
     fontWeight: Typography.weight.bold, minWidth: 26, textAlign: 'center',
   },
+  hourRow: {
+    flexDirection: 'row', gap: 6,
+    paddingHorizontal: Spacing.base,
+  },
   attireRow: { flexDirection: 'row', gap: 7 },
+  attireFullRow: {
+    flexDirection: 'row', gap: 8,
+    paddingHorizontal: Spacing.base,
+  },
+  attireChipFull: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, backgroundColor: Colors.surface2, borderRadius: BorderRadius.md,
+    borderWidth: 1, borderColor: Colors.border, paddingVertical: 11,
+  },
   attireChip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     backgroundColor: Colors.surface3, borderRadius: BorderRadius.sm,

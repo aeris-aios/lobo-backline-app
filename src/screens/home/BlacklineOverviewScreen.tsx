@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../theme/theme';
 
@@ -21,20 +21,22 @@ const VEHICLES = [
     label: 'Sedan',
     icon: 'car-outline' as const,
     color: '#4A90D9',
-    seats: '1–3 occupants',
+    seats: '1–5 occupants',
     baseRate: '$125',
     desc: 'Low-profile executive sedans for discreet, efficient point-to-point movement.',
     examples: 'Mercedes E-Class · BMW 5 Series · Cadillac CT5',
+    comingSoon: false,
   },
   {
-    id: 'suv',
-    label: 'SUV',
+    id: 'elite_truck',
+    label: 'Elite Truck',
     icon: 'car-sport-outline' as const,
     color: '#7ED321',
-    seats: '1–6 occupants',
+    seats: '1–5 occupants',
     baseRate: '$175',
-    desc: 'Commanding SUVs for group movement, event coverage, or elevated visibility.',
-    examples: 'Cadillac Escalade · Lincoln Navigator · Suburban',
+    desc: 'High-clearance elite trucks for rugged terrain, tactical movement, or elevated visibility.',
+    examples: 'Ford F-150 Platinum · RAM 1500 TRX · GMC Sierra Denali',
+    comingSoon: false,
   },
   {
     id: 'luxury',
@@ -45,6 +47,7 @@ const VEHICLES = [
     baseRate: '$250',
     desc: 'Top-tier executive vehicles for VIP principals requiring premium comfort.',
     examples: 'Mercedes S-Class · BMW 7 Series · Genesis G90',
+    comingSoon: true,
   },
 ];
 
@@ -80,7 +83,7 @@ const PROTECTION_OPTIONS = [
 const RATE_FACTORS = [
   { icon: 'location-outline' as const, label: 'Location', desc: 'Rates vary by metro area and local market conditions.' },
   { icon: 'navigate-outline' as const, label: 'Distance', desc: 'Per-mile rate applies beyond the base hourly window.' },
-  { icon: 'car-sport-outline' as const, label: 'Vehicle Class', desc: 'Sedan, SUV, and Luxury tiers carry different base rates.' },
+  { icon: 'car-sport-outline' as const, label: 'Vehicle Class', desc: 'Sedan, Elite Truck, and Luxury tiers carry different base rates.' },
   { icon: 'people-outline' as const, label: 'Occupants', desc: 'Larger groups may require additional vehicle or agent.' },
   { icon: 'time-outline' as const, label: 'Duration', desc: 'Multi-hour and full-day bookings qualify for reduced rates.' },
   { icon: 'globe-outline' as const, label: 'International', desc: 'Cross-border assignments include coordination surcharge.' },
@@ -101,7 +104,7 @@ const SERVICES_OFFERED = [
 export default function BlacklineOverviewScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const [expandedVehicle, setExpandedVehicle] = useState<string | null>('suv');
+  const [expandedVehicle, setExpandedVehicle] = useState<string | null>('sedan');
   const [selectedProtection, setSelectedProtection] = useState<'unarmed' | 'armed'>('unarmed');
 
   return (
@@ -165,44 +168,79 @@ export default function BlacklineOverviewScreen() {
         {/* ── Vehicle Fleet ── */}
         <SectionLabel icon="car-sport-outline" title="Vehicle Fleet" />
         {VEHICLES.map(v => (
-          <TouchableOpacity
-            key={v.id}
-            style={[styles.vehicleCard, expandedVehicle === v.id && styles.vehicleCardActive]}
-            onPress={() => setExpandedVehicle(prev => prev === v.id ? null : v.id)}
-            activeOpacity={0.75}
-          >
-            <View style={styles.vehicleCardHeader}>
-              <View style={[styles.vehicleIconWrap, { backgroundColor: `${v.color}18` }]}>
-                <Ionicons name={v.icon} size={22} color={expandedVehicle === v.id ? v.color : Colors.steel} />
+          <View key={v.id} style={styles.vehicleWrapper}>
+            <TouchableOpacity
+              style={[
+                styles.vehicleCard,
+                expandedVehicle === v.id && styles.vehicleCardActive,
+                v.comingSoon && styles.vehicleCardDimmed,
+              ]}
+              onPress={() => !v.comingSoon && setExpandedVehicle(prev => prev === v.id ? null : v.id)}
+              activeOpacity={v.comingSoon ? 1 : 0.75}
+            >
+              <View style={styles.vehicleCardHeader}>
+                <View style={[styles.vehicleIconWrap, { backgroundColor: `${v.color}18` }]}>
+                  {v.id === 'elite_truck' ? (
+                    <MaterialCommunityIcons
+                      name="truck"
+                      size={22}
+                      color={v.comingSoon ? Colors.textMuted : (expandedVehicle === v.id ? v.color : Colors.steel)}
+                    />
+                  ) : (
+                    <Ionicons
+                      name={v.icon}
+                      size={22}
+                      color={v.comingSoon ? Colors.textMuted : (expandedVehicle === v.id ? v.color : Colors.steel)}
+                    />
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[
+                    styles.vehicleLabel,
+                    expandedVehicle === v.id && !v.comingSoon && { color: Colors.white },
+                    v.comingSoon && { color: Colors.textMuted },
+                  ]}>
+                    {v.label}
+                  </Text>
+                  <Text style={styles.vehicleSub}>{v.seats}</Text>
+                </View>
+                <View style={styles.vehicleRateWrap}>
+                  <Text style={[styles.vehicleRate, { color: v.comingSoon ? Colors.textMuted : v.color }]}>
+                    {v.baseRate}
+                  </Text>
+                  <Text style={styles.vehicleRateUnit}>/hr</Text>
+                </View>
+                {!v.comingSoon && (
+                  <Ionicons
+                    name={expandedVehicle === v.id ? 'chevron-up' : 'chevron-down'}
+                    size={16}
+                    color={Colors.textMuted}
+                    style={{ marginLeft: Spacing.sm }}
+                  />
+                )}
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.vehicleLabel, expandedVehicle === v.id && { color: Colors.white }]}>
-                  {v.label}
-                </Text>
-                <Text style={styles.vehicleSub}>{v.seats}</Text>
-              </View>
-              <View style={styles.vehicleRateWrap}>
-                <Text style={[styles.vehicleRate, { color: v.color }]}>{v.baseRate}</Text>
-                <Text style={styles.vehicleRateUnit}>/hr</Text>
-              </View>
-              <Ionicons
-                name={expandedVehicle === v.id ? 'chevron-up' : 'chevron-down'}
-                size={16}
-                color={Colors.textMuted}
-                style={{ marginLeft: Spacing.sm }}
-              />
-            </View>
-            {expandedVehicle === v.id && (
-              <View style={styles.vehicleExpanded}>
-                <View style={[styles.vehicleExpandedDivider, { backgroundColor: v.color + '33' }]} />
-                <Text style={styles.vehicleDesc}>{v.desc}</Text>
-                <View style={styles.vehicleExamplesWrap}>
-                  <Ionicons name="car-outline" size={12} color={Colors.textMuted} />
-                  <Text style={styles.vehicleExamples}>{v.examples}</Text>
+              {expandedVehicle === v.id && !v.comingSoon && (
+                <View style={styles.vehicleExpanded}>
+                  <View style={[styles.vehicleExpandedDivider, { backgroundColor: v.color + '33' }]} />
+                  <Text style={styles.vehicleDesc}>{v.desc}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            {/* Coming Soon overlay banner */}
+            {v.comingSoon && (
+              <View style={styles.comingSoonOverlay} pointerEvents="none">
+                <LinearGradient
+                  colors={['rgba(10,10,10,0.55)', 'rgba(10,10,10,0.72)']}
+                  style={StyleSheet.absoluteFill}
+                />
+                <View style={styles.comingSoonBadge}>
+                  <Ionicons name="time-outline" size={13} color={Colors.blacklineAccent} />
+                  <Text style={styles.comingSoonText}>COMING SOON</Text>
                 </View>
               </View>
             )}
-          </TouchableOpacity>
+          </View>
         ))}
 
         {/* ── Protection Level ── */}
@@ -389,15 +427,42 @@ const styles = StyleSheet.create({
   serviceChipText: { color: Colors.textSecondary, fontSize: Typography.size.xs, fontWeight: Typography.weight.medium },
 
   // Vehicle cards
+  vehicleWrapper: { position: 'relative', marginBottom: Spacing.sm },
   vehicleCard: {
     backgroundColor: Colors.surface2,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginBottom: Spacing.sm,
     overflow: 'hidden',
   },
   vehicleCardActive: { borderColor: Colors.blacklineAccent },
+  vehicleCardDimmed: { opacity: 0.72 },
+  comingSoonOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: `${Colors.blacklineAccent}40`,
+  },
+  comingSoonBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(10,10,10,0.82)',
+    borderWidth: 1,
+    borderColor: Colors.blacklineAccent,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  comingSoonText: {
+    color: Colors.blacklineAccent,
+    fontSize: Typography.size.xs,
+    fontWeight: Typography.weight.heavy,
+    letterSpacing: 1.2,
+  },
   vehicleCardHeader: { flexDirection: 'row', alignItems: 'center', padding: Spacing.base, gap: Spacing.md },
   vehicleIconWrap: { width: 42, height: 42, borderRadius: BorderRadius.sm, alignItems: 'center', justifyContent: 'center' },
   vehicleLabel: { color: Colors.textSecondary, fontSize: Typography.size.base, fontWeight: Typography.weight.semiBold },

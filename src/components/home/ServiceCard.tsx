@@ -13,94 +13,83 @@ interface ServiceCardProps {
   isHovered?: boolean;
 }
 
-// ─── Per-service accent palette ────────────────────────────────────────────
-const ACCENT: Record<string, { primary: string; dark: string; bg: string; gradient: [string, string] }> = {
+// ─── Per-service permanent accent styles ──────────────────────────────────────
+const ACCENT: Record<string, {
+  border:      string;
+  bgGradient:  [string, string];
+  bgWash:      string;
+  iconBg:      string;
+  iconColor:   string;
+  accentColor: string;
+}> = {
   blackline_transport: {
-    primary:  '#7B4FBF',
-    dark:     '#4A1D8A',
-    bg:       'rgba(123,79,191,0.18)',
-    gradient: ['#1A0A2E', '#2D1B52'],
+    border:      '#E8C86A',
+    bgGradient:  ['#1E0A38', '#2E155A'],  // vivid dark purple
+    bgWash:      'rgba(110,60,200,0.35)',
+    iconBg:      'rgba(201,168,76,0.25)',
+    iconColor:   '#E8C86A',
+    accentColor: '#E8C86A',
   },
   armed_executive: {
-    primary:  Colors.crimson,
-    dark:     Colors.crimsonDark,
-    bg:       'rgba(139,0,0,0.18)',
-    gradient: [Colors.crimsonDark, Colors.crimson],
+    border:      '#E02020',
+    bgGradient:  ['#3A0808', '#5C0E0E'],  // vivid deep red
+    bgWash:      'rgba(200,20,20,0.40)',
+    iconBg:      'rgba(255,80,80,0.25)',
+    iconColor:   '#FF7070',
+    accentColor: '#FF5050',
   },
   unarmed_executive: {
-    primary:  '#8B96A8',
-    dark:     '#5A6475',
-    bg:       'rgba(139,150,168,0.15)',
-    gradient: ['#1A1E24', '#1E2530'],
+    border:      '#E02020',
+    bgGradient:  ['#3A0808', '#5C0E0E'],
+    bgWash:      'rgba(200,20,20,0.40)',
+    iconBg:      'rgba(255,80,80,0.25)',
+    iconColor:   '#FF7070',
+    accentColor: '#FF5050',
   },
   school_family_escort: {
-    primary:  Colors.border,
-    dark:     Colors.surface3,
-    bg:       'rgba(255,255,255,0.04)',
-    gradient: ['#1C1C1C', '#161616'],
+    border:      '#E02020',
+    bgGradient:  ['#3A0808', '#5C0E0E'],
+    bgWash:      'rgba(200,20,20,0.40)',
+    iconBg:      'rgba(255,80,80,0.25)',
+    iconColor:   '#FF7070',
+    accentColor: '#FF5050',
+  },
+  special_event: {
+    border:      '#E02020',
+    bgGradient:  ['#3A0808', '#5C0E0E'],
+    bgWash:      'rgba(200,20,20,0.40)',
+    iconBg:      'rgba(255,80,80,0.25)',
+    iconColor:   '#FF7070',
+    accentColor: '#FF5050',
   },
 };
+
 const DEFAULT_ACCENT = ACCENT.armed_executive;
 
 export default function ServiceCard({ service, selected, onPress, fullWidth, isHovered }: ServiceCardProps) {
-  const accent = ACCENT[service.id] || DEFAULT_ACCENT;
+  const acc = ACCENT[service.id] || DEFAULT_ACCENT;
 
-  // Animation values
-  const scaleAnim    = useRef(new Animated.Value(1)).current;
-  const bgOpacity    = useRef(new Animated.Value(0)).current;
-  const borderAnim   = useRef(new Animated.Value(0)).current;
-  const arrowX       = useRef(new Animated.Value(0)).current;
-  const arrowOpacity = useRef(new Animated.Value(0.3)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const arrowX    = useRef(new Animated.Value(0)).current;
 
-  // React to isHovered changes from the parent cursor
   useEffect(() => {
-    if (isHovered) {
-      Animated.parallel([
-        Animated.spring(scaleAnim,   { toValue: 1.025, useNativeDriver: true, speed: 30, bounciness: 5 }),
-        Animated.timing(bgOpacity,   { toValue: 1,     duration: 200, useNativeDriver: false }),
-        Animated.timing(borderAnim,  { toValue: 1,     duration: 200, useNativeDriver: false }),
-        Animated.timing(arrowX,      { toValue: 6,     duration: 200, useNativeDriver: true }),
-        Animated.timing(arrowOpacity,{ toValue: 1,     duration: 180, useNativeDriver: true }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.spring(scaleAnim,   { toValue: 1,    useNativeDriver: true, speed: 30, bounciness: 3 }),
-        Animated.timing(bgOpacity,   { toValue: 0,    duration: 250, useNativeDriver: false }),
-        Animated.timing(borderAnim,  { toValue: 0,    duration: 250, useNativeDriver: false }),
-        Animated.timing(arrowX,      { toValue: 0,    duration: 280, useNativeDriver: true }),
-        Animated.timing(arrowOpacity,{ toValue: 0.3,  duration: 280, useNativeDriver: true }),
-      ]).start();
-    }
+    Animated.spring(scaleAnim, {
+      toValue: isHovered ? 1.025 : 1,
+      useNativeDriver: true,
+      speed: 30,
+      bounciness: 5,
+    }).start();
   }, [isHovered]);
 
-  const onPressIn = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim,  { toValue: 1.03, useNativeDriver: true, speed: 50, bounciness: 8 }),
-      Animated.timing(bgOpacity,  { toValue: 1,    duration: 150, useNativeDriver: false }),
-      Animated.timing(borderAnim, { toValue: 1,    duration: 150, useNativeDriver: false }),
-      Animated.timing(arrowX,     { toValue: 8,    duration: 150, useNativeDriver: true }),
-      Animated.timing(arrowOpacity,{ toValue: 1,   duration: 120, useNativeDriver: true }),
-    ]).start();
-  };
+  const onPressIn = () => Animated.parallel([
+    Animated.spring(scaleAnim, { toValue: 1.03, useNativeDriver: true, speed: 50, bounciness: 8 }),
+    Animated.timing(arrowX,    { toValue: 8, duration: 140, useNativeDriver: true }),
+  ]).start();
 
-  const onPressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim,  { toValue: 1,    useNativeDriver: true, speed: 40, bounciness: 4 }),
-      Animated.timing(bgOpacity,  { toValue: 0,    duration: 250, useNativeDriver: false }),
-      Animated.timing(borderAnim, { toValue: 0,    duration: 250, useNativeDriver: false }),
-      Animated.timing(arrowX,     { toValue: 0,    duration: 300, useNativeDriver: true }),
-      Animated.timing(arrowOpacity,{ toValue: 0.45, duration: 300, useNativeDriver: true }),
-    ]).start();
-  };
-
-  const borderColor = borderAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [selected ? accent.primary : Colors.border, accent.primary],
-  });
-  const highlightBg = bgOpacity.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['transparent', accent.bg],
-  });
+  const onPressOut = () => Animated.parallel([
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 40, bounciness: 4 }),
+    Animated.timing(arrowX,    { toValue: 0, duration: 280, useNativeDriver: true }),
+  ]).start();
 
   if (fullWidth) {
     return (
@@ -111,67 +100,55 @@ export default function ServiceCard({ service, selected, onPress, fullWidth, isH
           onPressOut={onPressOut}
           activeOpacity={1}
         >
-          {/* Base gradient */}
           <LinearGradient
-            colors={selected ? accent.gradient : ['#1C1C1C', '#161616']}
-            style={[styles.rowCard]}
+            colors={acc.bgGradient}
+            style={styles.rowCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            {/* Animated border overlay */}
-            <Animated.View
+            {/* Permanent border */}
+            <View
               pointerEvents="none"
-              style={[StyleSheet.absoluteFill, styles.borderOverlay, { borderColor }]}
+              style={[StyleSheet.absoluteFill, styles.borderOverlay, { borderColor: acc.border }]}
             />
 
-            {/* Press highlight wash */}
-            <Animated.View
+            {/* Permanent color wash */}
+            <View
               pointerEvents="none"
-              style={[StyleSheet.absoluteFill, { backgroundColor: highlightBg, borderRadius: BorderRadius.lg }]}
+              style={[StyleSheet.absoluteFill, { backgroundColor: acc.bgWash, borderRadius: BorderRadius.lg }]}
             />
 
             {/* Left accent bar */}
-            <View style={[styles.accentBar, { backgroundColor: selected ? accent.primary : 'transparent' }]} />
+            <View style={[styles.accentBar, { backgroundColor: acc.accentColor }]} />
 
             {/* Icon */}
-            <View style={[
-              styles.iconContainer,
-              { backgroundColor: selected ? accent.bg : Colors.surface3 },
-              selected && { borderWidth: 1, borderColor: `${accent.primary}50` },
-            ]}>
+            <View style={[styles.iconContainer, { backgroundColor: acc.iconBg }]}>
               <Ionicons
                 name={service.icon as keyof typeof Ionicons.glyphMap}
                 size={22}
-                color={selected ? accent.primary : Colors.steel}
+                color={acc.iconColor}
               />
             </View>
 
             {/* Text */}
             <View style={styles.rowText}>
-              <Text style={[styles.title, { color: selected ? accent.primary : Colors.textSecondary }]}>
-                {service.title}
-              </Text>
-              <Text style={styles.subtitle}>{service.description}</Text>
+              <Text style={styles.cardTitle}>{service.title}</Text>
+              <Text style={styles.cardSub}>{service.description}</Text>
             </View>
 
-            {/* Right — badge + animated arrow */}
+            {/* Right — badge + arrow */}
             <View style={styles.rowRight}>
               {service.requiresArmed && (
-                <View style={[styles.armedBadge, {
-                  borderColor: accent.dark,
-                  backgroundColor: accent.bg,
-                }]}>
-                  <Text style={[styles.armedBadgeText, { color: accent.primary }]}>ARMED</Text>
+                <View style={styles.armedBadge}>
+                  <Text style={styles.armedBadgeText}>ARMED</Text>
                 </View>
               )}
               <View style={styles.arrowWrap}>
                 {selected && (
-                  <Ionicons name="checkmark-circle" size={17} color={accent.primary} />
+                  <Ionicons name="checkmark-circle" size={16} color={acc.accentColor} />
                 )}
-                <Animated.View style={{ transform: [{ translateX: arrowX }], opacity: arrowOpacity }}>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
-                    color={accent.primary}
-                  />
+                <Animated.View style={{ transform: [{ translateX: arrowX }] }}>
+                  <Ionicons name="chevron-forward" size={20} color={acc.accentColor} />
                 </Animated.View>
               </View>
             </View>
@@ -181,39 +158,26 @@ export default function ServiceCard({ service, selected, onPress, fullWidth, isH
     );
   }
 
-  // ── Compact variant ────────────────────────────────────────────────────────
+  // Compact variant
   return (
     <Animated.View style={[styles.wrapper, { transform: [{ scale: scaleAnim }] }]}>
-      <TouchableOpacity
-        onPress={onPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        activeOpacity={1}
-      >
-        <LinearGradient
-          colors={selected ? accent.gradient : ['#1C1C1C', '#161616']}
-          style={[styles.card, selected && { borderColor: accent.primary }]}
-        >
-          <Animated.View
+      <TouchableOpacity onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut} activeOpacity={1}>
+        <LinearGradient colors={acc.bgGradient} style={styles.card} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+          <View
             pointerEvents="none"
-            style={[StyleSheet.absoluteFill, styles.borderOverlay, { borderColor }]}
+            style={[StyleSheet.absoluteFill, styles.borderOverlay, { borderColor: acc.border }]}
           />
-          <View style={[
-            styles.iconContainer,
-            { marginBottom: Spacing.sm, backgroundColor: selected ? accent.bg : Colors.surface3 },
-          ]}>
-            <Ionicons
-              name={service.icon as keyof typeof Ionicons.glyphMap}
-              size={22}
-              color={selected ? accent.primary : Colors.steel}
-            />
+          <View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, { backgroundColor: acc.bgWash, borderRadius: BorderRadius.lg }]}
+          />
+          <View style={[styles.iconContainer, { backgroundColor: acc.iconBg, marginBottom: Spacing.sm }]}>
+            <Ionicons name={service.icon as keyof typeof Ionicons.glyphMap} size={22} color={acc.iconColor} />
           </View>
-          <Text style={[styles.title, selected && { color: accent.primary }]} numberOfLines={1}>
-            {service.title}
-          </Text>
-          <Text style={styles.subtitle} numberOfLines={1}>{service.subtitle}</Text>
-          <Animated.View style={[styles.compactArrow, { transform: [{ translateX: arrowX }], opacity: arrowOpacity }]}>
-            <Ionicons name="chevron-forward" size={14} color={selected ? accent.primary : Colors.steel} />
+          <Text style={styles.cardTitle} numberOfLines={1}>{service.title}</Text>
+          <Text style={styles.cardSub} numberOfLines={1}>{service.subtitle}</Text>
+          <Animated.View style={[styles.compactArrow, { transform: [{ translateX: arrowX }] }]}>
+            <Ionicons name="chevron-forward" size={14} color={acc.accentColor} />
           </Animated.View>
         </LinearGradient>
       </TouchableOpacity>
@@ -235,7 +199,6 @@ const styles = StyleSheet.create({
   borderOverlay: {
     borderRadius: BorderRadius.lg,
     borderWidth: 1.5,
-    pointerEvents: 'none',
   },
   accentBar: {
     position: 'absolute',
@@ -244,7 +207,27 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: BorderRadius.lg,
     borderBottomLeftRadius: BorderRadius.lg,
   },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
   rowText: { flex: 1 },
+  cardTitle: {
+    color: Colors.white,
+    fontSize: Typography.size.sm,
+    fontWeight: Typography.weight.medium,
+    marginBottom: 2,
+    letterSpacing: 0.1,
+  },
+  cardSub: {
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 10,
+    lineHeight: 14,
+  },
   rowRight: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -256,41 +239,25 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   armedBadge: {
-    borderWidth: 1,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
     borderRadius: BorderRadius.sm,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
   armedBadgeText: {
     fontSize: 9,
     fontWeight: Typography.weight.bold,
-    letterSpacing: 0.8,
+    letterSpacing: 1,
+    color: '#FFFFFF',
   },
-  iconContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surface3,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    color: Colors.textSecondary,
-    fontSize: Typography.size.sm,
-    fontWeight: Typography.weight.semiBold,
-    marginBottom: 2,
-  },
-  subtitle: {
-    color: Colors.textMuted,
-    fontSize: 10,
-    lineHeight: 14,
-  },
+
+  // Compact
   wrapper: { width: 120, marginRight: Spacing.sm },
   card: {
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
     overflow: 'hidden',
     ...Shadows.sm,
   },

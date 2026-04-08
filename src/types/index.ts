@@ -54,6 +54,7 @@ export type ServiceType =
   | 'armed_executive'
   | 'unarmed_executive'
   | 'school_family_escort'
+  | 'special_event'
   | 'event_security'
   | 'corporate_vip';
 

@@ -194,32 +194,42 @@ export default function ScheduleProtectionScreen() {
           </View>
         </View>
 
-        {/* ── Time Picker ── */}
+        {/* ── Time Picker — AM / PM grouped ── */}
         <SectionLabel icon="time-outline" text="Select Time" />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          nestedScrollEnabled
-          decelerationRate="fast"
-          style={styles.hScroll}
-          contentContainerStyle={styles.hScrollContent}
-        >
-          {TIME_SLOTS.map(t => {
-            const active = selectedTime === t;
-            const isAM   = t.includes('AM');
-            return (
-              <TouchableOpacity
-                key={t}
-                style={[styles.timeChip, active && styles.timeChipActive]}
-                onPress={() => setSelectedTime(t)}
-                activeOpacity={0.8}
+        <View style={styles.timePeriodWrap}>
+          {(['AM', 'PM'] as const).map(period => (
+            <View key={period} style={styles.timePeriodGroup}>
+              <View style={styles.timePeriodLabel}>
+                <Text style={styles.timePeriodLabelText}>{period}</Text>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                nestedScrollEnabled
+                decelerationRate="fast"
+                snapToInterval={58}
+                snapToAlignment="start"
+                contentContainerStyle={styles.timeGroupContent}
               >
-                <Text style={[styles.timeText, active && styles.timeTextActive]}>{t.replace(' AM','').replace(' PM','')}</Text>
-                <Text style={[styles.timePeriod, active && styles.timePeriodActive, !isAM && styles.timePeriodPM]}>{isAM ? 'AM' : 'PM'}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                {TIME_SLOTS.filter(t => t.includes(period)).map(t => {
+                  const active = selectedTime === t;
+                  return (
+                    <TouchableOpacity
+                      key={t}
+                      style={[styles.timeChip, active && styles.timeChipActive]}
+                      onPress={() => setSelectedTime(t)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.timeText, active && styles.timeTextActive]}>
+                        {t.replace(' AM', '').replace(' PM', '')}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          ))}
+        </View>
 
         {/* Selected time banner */}
         <View style={styles.selectedTimeBanner}>
@@ -230,16 +240,9 @@ export default function ScheduleProtectionScreen() {
           </Text>
         </View>
 
-        {/* ── Coverage Duration ── */}
+        {/* ── Coverage Duration — all 7 in one visible row ── */}
         <SectionLabel icon="hourglass-outline" text="Coverage Duration" />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          nestedScrollEnabled
-          decelerationRate="fast"
-          style={styles.hScroll}
-          contentContainerStyle={styles.hScrollContent}
-        >
+        <View style={styles.hourRow}>
           {HOURS.map(h => (
             <TouchableOpacity
               key={h}
@@ -251,7 +254,7 @@ export default function ScheduleProtectionScreen() {
               <Text style={[styles.hourUnit, hours === h && styles.hourUnitActive]}>hr{parseInt(h) > 1 ? 's' : ''}</Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
 
         {/* ── Agent Type ── */}
         <SectionLabel icon="shield-outline" text="Type of Agent" />
@@ -389,16 +392,30 @@ export default function ScheduleProtectionScreen() {
           </View>
           <Text style={styles.stickyPrice}>${estTotal.toLocaleString()} <Text style={styles.stickyPriceSub}>est.</Text></Text>
         </View>
-        <TouchableOpacity style={styles.scheduleBtn} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.scheduleBtn}
+          activeOpacity={0.88}
+          onPress={() => navigation.navigate('BookingConfirmation', {
+            service:    service.label,
+            date:       selectedDate.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+            time:       selectedTime,
+            hours,
+            agentCount,
+            attire:     ATTIRE.find(a => a.id === attire)?.label ?? attire,
+            estTotal,
+          })}
+        >
           <LinearGradient
-            colors={isReady ? [Colors.crimsonDark, Colors.crimson] : ['#333', '#2A2A2A']}
+            colors={[Colors.crimsonDark, Colors.crimson]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={styles.scheduleBtnGrad}
           >
-            <Ionicons name="calendar-sharp" size={18} color={isReady ? Colors.white : Colors.steel} />
-            <View>
-              <Text style={[styles.scheduleBtnTitle, !isReady && { color: Colors.steel }]}>Schedule Detail</Text>
-              <Text style={styles.scheduleBtnSub}>{isReady ? `${service.label} · ${hours}h` : 'Add locations to confirm'}</Text>
+            <Ionicons name="shield-checkmark" size={20} color={Colors.white} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.scheduleBtnTitle}>Schedule Protection</Text>
+              <Text style={styles.scheduleBtnSub}>{service.label} · {hours}h · ${estTotal.toLocaleString()} est.</Text>
             </View>
+            <Ionicons name="arrow-forward-circle" size={24} color="rgba(255,255,255,0.8)" />
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -496,16 +513,16 @@ const styles = StyleSheet.create({
   selectedDateText: { color: Colors.textSecondary, fontSize: Typography.size.xs },
 
   // Shared horizontal scroll
-  hScrollContent: { paddingHorizontal: Spacing.base, gap: Spacing.sm, paddingRight: Spacing.xl },
+  hScrollContent: { paddingHorizontal: Spacing.base, gap: 8, paddingRight: Spacing.base },
 
-  // Time chips
+  // Time chips — compact, AM/PM shown on group header
   timeChip: {
     alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: Spacing.sm, paddingVertical: Spacing.sm,
-    minWidth: 64, borderRadius: BorderRadius.md,
-    borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface2,
+    paddingHorizontal: 8, paddingVertical: 8,
+    minWidth: 50, borderRadius: BorderRadius.md,
+    borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface3,
   },
-  timeChipActive: { backgroundColor: 'rgba(139,0,0,0.18)', borderColor: Colors.crimson },
+  timeChipActive: { backgroundColor: 'rgba(139,0,0,0.25)', borderColor: Colors.crimson },
   timeText: { color: Colors.steel, fontSize: Typography.size.sm, fontWeight: Typography.weight.bold },
   timeTextActive: { color: Colors.textPrimary },
   timePeriod: { color: Colors.textMuted, fontSize: 9, marginTop: 1 },
@@ -522,17 +539,36 @@ const styles = StyleSheet.create({
   selectedTimeText: { color: Colors.textSecondary, fontSize: Typography.size.xs },
   selectedTimeVal: { color: Colors.crimsonLight, fontWeight: Typography.weight.bold },
 
-  // Hour chips
+  // Hour row — all 7 chips flex across full width
+  hourRow: {
+    flexDirection: 'row', gap: 5, paddingHorizontal: Spacing.base,
+  },
   hourChip: {
-    width: 62, height: 56, alignItems: 'center', justifyContent: 'center',
+    flex: 1, height: 52, alignItems: 'center', justifyContent: 'center',
     backgroundColor: Colors.surface2, borderRadius: BorderRadius.md,
     borderWidth: 1, borderColor: Colors.border,
   },
-  hourChipActive: { backgroundColor: 'rgba(139,0,0,0.15)', borderColor: Colors.crimson },
-  hourNum: { color: Colors.steel, fontSize: Typography.size.lg, fontWeight: Typography.weight.bold, lineHeight: 22 },
-  hourNumActive: { color: Colors.crimsonLight },
-  hourUnit: { color: Colors.textMuted, fontSize: 10 },
-  hourUnitActive: { color: Colors.crimson },
+  hourChipActive: { backgroundColor: 'rgba(139,0,0,0.22)', borderColor: Colors.crimson },
+  hourNum: { color: Colors.steel, fontSize: Typography.size.sm, fontWeight: Typography.weight.bold, lineHeight: 18 },
+  hourNumActive: { color: Colors.textPrimary },
+  hourUnit: { color: Colors.textMuted, fontSize: 9 },
+  hourUnitActive: { color: Colors.crimsonLight },
+
+  // Time period groups
+  timePeriodWrap: { gap: Spacing.sm },
+  timePeriodGroup: {
+    backgroundColor: Colors.surface2, borderRadius: BorderRadius.lg,
+    borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
+  },
+  timePeriodLabel: {
+    paddingHorizontal: Spacing.base, paddingTop: Spacing.sm, paddingBottom: 4,
+    borderBottomWidth: 1, borderBottomColor: Colors.border,
+  },
+  timePeriodLabelText: {
+    color: Colors.textMuted, fontSize: Typography.size.xs,
+    fontWeight: Typography.weight.bold, letterSpacing: 1.5,
+  },
+  timeGroupContent: { paddingHorizontal: Spacing.sm, paddingVertical: Spacing.sm, gap: 6 },
 
   // Agent type grid
   agentGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
