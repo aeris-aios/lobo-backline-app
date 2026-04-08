@@ -20,7 +20,8 @@
       "infoPlist": {
         "NSFaceIDUsageDescription": "Use Face ID to securely access your LOBO EP account.",
         "NSLocationWhenInUseUsageDescription": "LOBO EP needs your location to show nearby services and for agent tracking.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "LOBO EP uses your location for active protection details."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "LOBO EP uses your location for active protection details.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
